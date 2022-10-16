@@ -363,6 +363,15 @@ html {
     text-decoration: none;
 }
 
+#result-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
 button:focus {
     outline: none;
 }

@@ -1,5 +1,7 @@
 const waiting = document.getElementById("waiting");
+const resultTable = document.getElementById("result-table");
 waiting.style.display = "none";
+// resultTable.style.display = "none";
 
 $("#submit").click(function (e) {
     e.preventDefault();
@@ -9,23 +11,15 @@ $("#submit").click(function (e) {
 
     setTimeout(() => {
         waiting.style.display = "none";
-        $("#result").html("Input sticker is: " + sticker + "<hr>");
+        // show table html here
+        // resultTable.classList.remove("hidden");
+        resultTable.style.display = "flex";
+        $("#result").html("Input sticker is: " + sticker);
         }, 1000);
-
-    // $.ajax({
-    //     // Other ajax parameters
-    //     success: function () {
-    //     // hiding the image here
-    //     $('#loaderImage').hide();
-    //     }
-    // });
-
 
     $.post( "/10k-analysis", {
         javascript_data: sticker
     });
-
-    
 
     
 });

@@ -55,6 +55,7 @@
 
                 <!-- <button id="submit"> Show file </button> -->
             </div>
+
         </h1>
 
     </div>
@@ -62,35 +63,72 @@
 
     </center>
 
-    <div id="portfolio">
-         
-              <div id="work">
-                 <h1>About Sentient</h1>
-
-                 <div class="project">
-                 <h2>Who we are & our promise</h2>
-                 <div>
-                    Sentient is a Bay Area firm focused solely on offering financial literacy. Our motif is to digest 10-K annual reports for publicly traded companies to allow stockholders an opportunity to have a greater understanding of their investments. Sentient solutions show an array of financial models and trendiness for stockholders to grasp a full scope of where their investments stand. Using Machine Learning, Sentient offers estimations of projected growth and outcome for the coming year.</div>
-                 <center><button class="btn_one" onclick="window.open('10k.html')">Test Our Model</button></center>
-                </div>
-
-                <div class="project">
-                    <h2>How Sentient Solutions work </h2>
-                    <div>Sentient uses Machine Learning algorithms to extrapolate information centered around the Accounting formula, Assets = Liabilities + Stockholder’s Equity. Using this formula, we are able to calculate EPS (Earnings Per Share), ROA (Return on Assets), ROE/DuPont Analysis (Return on Equity), NPM (Net Profit Margin), DER (Debt-to-Equity Ratio), & ARG (Annual Revenue Growth). Using this information, Sentient will also approximate a trend line using linear regression for calculations and come to a financial estimate on the future of any given corporation. </div>
-                   </div>
-
-             </div>
-         
-              <div id="contact">
-                 <h1>Contact Our Team</h1> 
-                 <form>
-                     <input type="text" placeholder="Full Name" required>
-                     <input type="email" placeholder="Email" required><br>
-                     <textarea placeholder="Your message for our team" required rows="5"></textarea><br>
-                     <button class="btn_one">Send</button>
-                 </form>   
-             </div>
+    <div id="result-table" style="display:none">
+        <h1>Result table</h1>
+        <table border="1" class="dataframe">
+            <thead>
+              <tr style="text-align: right;">
+                <th></th>
+                <th>CosineSum</th>
+                <th>JaccardSum</th>
+              </tr>
+              <tr>
+                <th>Pair</th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>(0-1)</th>
+                <td>0.946097</td>
+                <td>0.897643</td>
+              </tr>
+              <tr>
+                <th>(1-2)</th>
+                <td>0.909947</td>
+                <td>0.834756</td>
+              </tr>
+              <tr>
+                <th>(2-3)</th>
+                <td>0.891108</td>
+                <td>0.803590</td>
+              </tr>
+              <tr>
+                <th>(3-4)</th>
+                <td>0.863584</td>
+                <td>0.759895</td>
+              </tr>
+              <tr>
+                <th>(4-5)</th>
+                <td>0.843114</td>
+                <td>0.728764</td>
+              </tr>
+              <tr>
+                <th>(5-6)</th>
+                <td>0.798365</td>
+                <td>0.663657</td>
+              </tr>
+              <tr>
+                <th>(6-7)</th>
+                <td>0.793946</td>
+                <td>0.657032</td>
+              </tr>
+              <tr>
+                <th>(7-8)</th>
+                <td>0.788356</td>
+                <td>0.647274</td>
+              </tr>
+              <tr>
+                <th>(8-9)</th>
+                <td>0.772698</td>
+                <td>0.625866</td>
+              </tr>
+            </tbody>
+          </table>
+          
     </div>
+
     <div id="footer">
         Template used from <br><br> <a href="https://github.com/imfunniee/fimbo.git">Fimbo</a> on GitHub.
     </div>
