@@ -19,89 +19,111 @@ import re
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import pandas as pd
+from textblob import TextBlob
 
+def mapTickerCIK():
+    """
+    Map stock tickers to CIKs.
+    """
+    f = open("company_tickers.json")
+    data = json.load(f)
+    tickerCIKs = {}
+    for i, l in data.items():
+        currTicker = l['ticker']
+        currCIK = l['cik_str']
+        tickerCIKs[currTicker] = currCIK
+    return tickerCIKs
 
-company = input("Enter a company: ")
-f = open("company_tickers.json")
-data = json.load(f)
-tickerCIK = {}
-for i, l in data.items():
-    currTicker = l['ticker']
-    currCIK = l['cik_str']
-    tickerCIK[currTicker] = currCIK
-path = "/Users/ducnguyen/Sentient/10Ks/"
-os.chdir(path)
-try:
-    os.mkdir(str(tickerCIK[company]))
-    os.chdir(str(tickerCIK[company]))
-except OSError:
-    print(company + "'s CIK has been previously utilized")
-
-
-s = requests.Session()
-url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000"+ str(tickerCIK[company]) +"&type=10-K%25&dateb=&owner=exclude&start=0&count=40&output=atom"
-#print(url)
-xml = requests.get(url)
-soup = BeautifulSoup(xml.content, 'html')
-tenKs = soup.find_all('filing-href')
-
-# Fetch the documents and save into our local folder
-documents = [] # the filenames of all the documents
-counter = 0
-for tenK in tenKs:
+def fetchDocuments(tickerCIKs, company):
+    """
+    Fetch all the documents and store them into our local folder.
+    """
+    path = "/Users/ducnguyen/Sentient/10Ks/"
+    os.chdir(path)
+    try:
+        os.mkdir(str(tickerCIKs[company]))
+        os.chdir(str(tickerCIKs[company]))
+    except OSError:
+        print(company + "'s CIK has been previously utilized")
+        return
     
-    kurl = tenK.text
-    file = requests.get(kurl)
-    soup = BeautifulSoup(file.content, 'html')
-    
-    kurls = [i['href'] for i in soup.find_all('a', href=True)]
-    docURL = "https://www.sec.gov/" + kurls[9]
+    s = requests.Session()
+    url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000"+ str(tickerCIKs[company]) +"&type=10-K%25&dateb=&owner=exclude&start=0&count=40&output=atom"
+    xml = requests.get(url)
+    soup = BeautifulSoup(xml.content, 'html', features="html.parser")
+    tenKs = soup.find_all('filing-href')
 
-    
-    if("ex" not in docURL and "k" in docURL):
-        kfile = requests.get(docURL)
+    # Fetch the documents and save into our local folder
+    documentNames = [] # the filenames of all the documents
+    counter = 0
+    for tenK in tenKs:
+        kurl = tenK.text
+        file = requests.get(kurl)
+        soup = BeautifulSoup(file.content, 'html', features="html.parser")
+        kurls = [i['href'] for i in soup.find_all('a', href=True)]
+        docURL = "https://www.sec.gov/" + kurls[9]
+        if("ex" not in docURL and "k" in docURL):
+            kfile = requests.get(docURL)
+            if("ix?" not in docURL):
+                soup = BeautifulSoup(kfile.content, 'html')
+                text = soup.get_text()
+                fileName = company + "_" + str(counter) + ".txt"
+                file = open(fileName, 'a')
+                file.write(text)
+                file.close()
+                documentNames.append(fileName)
+        counter += 1
+    return documentNames
 
-        if("ix?" not in docURL):
-            soup = BeautifulSoup(kfile.content, 'html')
-            text = soup.get_text()
-            fileName = company + "_" + str(counter) + ".txt"
-            file = open(fileName, 'a')
-            file.write(text)
-            file.close()
-            documents.append(fileName)
-    counter+=1
 
-alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'
-            , 'u', 'v', 'w', 'x', 'y', 'z']
+def processData(documentNames):
+    """
+    Data cleaning + preprocessing by tokenization, removing stopwords, and lemmatization.
+    """
+    alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'
+                , 'u', 'v', 'w', 'x', 'y', 'z']
+    # Data cleaning + preprocessing
+    dataset = []
+    for documentName in documentNames:
+        filtered = []
+        text = open(documentName, "r").read()
+        text = BeautifulSoup(text, 'html.parser').get_text() # remove HTML tags
+        tokenizer = RegexpTokenizer(r'\w+')
+        text = tokenizer.tokenize(text) # Tokenization
+        for word in text:
+            word = word.lower()
+            if(word not in stopwords.words('english') and word not in alphabet and word.isalpha()): # remove stopwords
+                word = WordNetLemmatizer().lemmatize(word) # lemmatization
+                filtered.append(word)
+        dataset.append(filtered)
+    return dataset
 
-# Data preprocessing + cleaning
-dataset = []
-for document in documents:
-    filtered = []
-    text = open(document, "r").read()
-    text = BeautifulSoup(text, 'html.parser').get_text() # remove HTML tags
-    tokenizer = RegexpTokenizer(r'\w+')
-    text = tokenizer.tokenize(text) # Tokenization
-    for word in text:
-        word = word.lower()
-        if(word not in stopwords.words('english') and word not in alphabet and word.isalpha()): # remove stopwords
-            word = WordNetLemmatizer().lemmatize(word) # lemmatization
-            filtered.append(word)
-    dataset.append(filtered)
 
-# Generate the BoW
-dict = corpora.Dictionary(dataset)
-BoW_corpus = [dict.doc2bow(file, allow_update=True) for file in dataset]
-id_words = [[(dict[id], count) for id, count in line] for line in BoW_corpus]
+def generateBoW(dataset):
+    """
+    Generates the BoW of the current dataset.
+    """
+    dict = corpora.Dictionary(dataset)
+    BoW_corpus = [dict.doc2bow(file, allow_update=True) for file in dataset]
+    id_words = [[(dict[id], count) for id, count in line] for line in BoW_corpus]
+    return id_words
 
-# # Display the Word Cloud
-# wordcloud = WordCloud(max_font_size=50, max_words=50, background_color="white", width=800, height=400).generate(" ".join(dataset[0])) #first documents tokens from docs(which contains many tokens from different docs)
-# plt.figure( figsize=(20,10), facecolor='k' )
-# plt.imshow(wordcloud, interpolation='bilinear')
-# plt.axis("off")
-# plt.show()
 
-def CosSimilarity(A, B):
+def wordCloud(dataset):
+    """
+    Generates + displays the wordcloud of the latest report. Can be some fun feature.
+    """
+    wordcloud = WordCloud(max_font_size=50, max_words=50, background_color="white", width=800, height=400).generate(" ".join(dataset[0]))
+    plt.figure( figsize=(20,10), facecolor='k' )
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.show()
+
+
+def CosSim(A, B):
+    """
+    Calculate the cosine similarity between two sets A and B.
+    """
     vec_A = []
     vec_B = []
     rvector = list(A.union(B))
@@ -119,19 +141,49 @@ def CosSimilarity(A, B):
         mul += vec_A[i] * vec_B[i]
     return mul / float((sum(vec_A) * sum(vec_B)) ** 0.5)
     
-def JaccardSimilarity(A, B):
+
+def JaccardSim(A, B):
+    """
+    Calculate the Jaccard similarities between two sets A and B.
+    """
     return len(A.intersection(B)) / len(A.union(B))
 
-l = 0 # 0 is the latest year
-thisYearLastYear = {}
-A = set(dataset[0])
-for r in range(1, len(dataset)):
-    B = set(dataset[r])
-    cos_score = CosSimilarity(A, B)
-    jaccard_score = JaccardSimilarity(A, B)
-    scores = []
-    scores.append(cos_score)
-    scores.append(jaccard_score)
-    thisYearLastYear["(" + str(l) + "-" + str(r) + ")"] = scores
-    l += 1
-print(thisYearLastYear)
+
+def computeSim(dataset):
+    """
+    Generate CosSim and JaccardSim for every two years, starting from the latest.
+    """
+    l = 0 # 0 is the latest year
+    thisYearLastYear = {}
+    A = set(dataset[0])
+    for r in range(1, len(dataset)):
+        B = set(dataset[r])
+        cos_score = CosSim(A, B)
+        jaccard_score = JaccardSim(A, B)
+        scores = []
+        scores.append(cos_score)
+        scores.append(jaccard_score)
+        thisYearLastYear["(" + str(l) + "-" + str(r) + ")"] = scores
+        l += 1
+    return thisYearLastYear
+
+def getPositivity(dataset):
+    """
+    Get the positivity of the current report.
+    """
+    positivity = TextBlob(" ".join(dataset[0])) # assuming for the latest 10K.
+    return positivity.sentiment
+
+def main():
+    """
+    The driver of the program
+    """
+    company = input("Enter a company: ")
+    tickerCIKs = mapTickerCIK()
+    documentNames = fetchDocuments(tickerCIKs, company)
+    dataset = processData(documentNames)
+    id_words = generateBoW(dataset)
+    thisYearLastYear = computeSim(dataset)
+    print(thisYearLastYear)
+
+main()
