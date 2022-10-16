@@ -2,6 +2,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 import requests_random_user_agent
+import pandas
 
 company = input("Enter a company: ")
 f = open("company_tickers.json")
@@ -32,16 +33,29 @@ for tenK in tenKs:
     '''
     
     kurl = tenK.text
-    print("kurl: ", kurl)
+    #print("kurl: ", kurl)
     file = requests.get(kurl)
     soup = BeautifulSoup(file.content, 'html')
+    
     #types = soup.find_all('td')
     #print(types[3].text)
     kurls = [i['href'] for i in soup.find_all('a', href=True)]
     docURL = "https://www.sec.gov/" + kurls[9]
-    print(docURL)
+
+    
+    if("ex" not in docURL and "k" in docURL):
+        
+        documents.append(docURL)
+
     #counter+=1
 
-print("\n\n")
-types = soup.find_all('td')
-print(types)
+    '''
+    types = soup.find_all('tr')
+    count = 0
+    for x in types[1]:
+        print(count)
+        print(x)
+        print("---------")
+        count+=1
+    '''
+
