@@ -20,10 +20,16 @@ url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000"+ str
 #print(url)
 xml = requests.get(url)
 soup = BeautifulSoup(xml.content, 'lxml')
-a = soup.find_all('filing-href')
+tenKs = soup.find_all('filing-href')
 
-print(a)
 
-#products = soup.find_all('a', class_ = "klavika simpletextlistitem")
 
-#print(url)
+kurl = tenKs[0].text
+file = requests.get(kurl)
+soup = BeautifulSoup(file.content, 'html')
+
+kurls = [i['href'] for i in soup.find_all('a', href=True)]
+docURL = "https://www.sec.gov/" + kurls[9]
+
+print(docURL)
+
