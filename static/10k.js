@@ -1,3 +1,8 @@
+$("#submit").click(function () {
+    const sticker = document.getElementById("text-input").value;
+    console.log(sticker);
+});
+
 
 $('input[type="file"]').change( function (e) {
     //read data from file upload
