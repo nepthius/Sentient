@@ -211,7 +211,7 @@ def analysisPage():
         documentNames = fetchDocuments(tickerCIKs, company)
         dataset = processData(documentNames)
         thisYearLastYear = computeSim(dataset)
-        print(thisYearLastYear)
+        #print(thisYearLastYear)
         central_df_dict = {'Pair': [], 'Cosine Similarity': [], 'Jaccard Similarity': []}
         for pair, vals in thisYearLastYear.items():
             central_df_dict['Pair'].append(pair)
@@ -222,9 +222,11 @@ def analysisPage():
         central_df = central_df.fillna(0)
         central_df = pd.concat([central_df, central_df.pct_change()], axis=1, sort=False)
         central_df.columns = ['CosSim', 'JaccSim', 'CosSim % Change', 'Jacc % Change']
+        print(central_df)
     return render_template("10k.html")
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
