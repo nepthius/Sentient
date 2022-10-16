@@ -3,6 +3,9 @@ import requests
 from bs4 import BeautifulSoup
 import requests_random_user_agent
 import os
+from nltk.tokenize import RegexpTokenizer
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 
 company = input("Enter a company: ")
 f = open("company_tickers.json")
@@ -41,6 +44,8 @@ for tenK in tenKs:
     kurls = [i['href'] for i in soup.find_all('a', href=True)]
     docURL = "https://www.sec.gov/" + kurls[9]
 
+
+    
     
     if("ex" not in docURL and "k" in docURL):
         #print(str(counter) + ": " + docURL)
@@ -53,7 +58,21 @@ for tenK in tenKs:
             text.write(soup.get_text())
             text.close()
             #print(soup.get_text())
-            documents.append(docURL)
-    
-    
+            documents.append(file)
     counter+=1
+
+alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'
+            , 'u', 'v', 'w', 'x', 'y', 'z']
+
+for document in documents:
+    filtered = []
+    text = open(document, "r").read()
+    tokenizer = RegexpTokenizer(r'\w+')
+    text = tokenizer.tokenize(text)
+    for word in text:
+        word = word.lower()
+        if(word not in stopwords.words('english') and word not in alphabet and word.isalpha()):
+            word = WordNetLemmatizer().lemmatize(word)
+            filtered.append(word)
+    print(filtered)
+    
