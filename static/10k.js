@@ -1,11 +1,35 @@
+const waiting = document.getElementById("waiting");
+waiting.style.display = "none";
+
 $("#submit").click(function (e) {
     e.preventDefault();
     const sticker = document.getElementById("text-input").value;
     console.log(sticker);
+    waiting.style.display = "block";
+
+    setTimeout(() => {
+        waiting.style.display = "none";
+        $("#result").html("Input sticker is: " + sticker + "<hr>");
+        }, 1000);
+
+    // $.ajax({
+    //     // Other ajax parameters
+    //     success: function () {
+    //     // hiding the image here
+    //     $('#loaderImage').hide();
+    //     }
+    // });
+
+
     $.post( "/10k-analysis", {
         javascript_data: sticker
     });
+
+    
+
+    
 });
+
 
 
 
