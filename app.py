@@ -1,236 +1,96 @@
-import pandas as pd
-import seaborn as sns
-from textblob import TextBlob
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-import re
-# import pyLDAvis.gensim_models
-from collections import Counter
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
-from gensim.models import TfidfModel
-from gensim import corpora
-from flask import Flask, render_template, url_for, request
-from bs4 import BeautifulSoup
-import requests
-import os
-from cmath import cos
-import json
-import requests
-from bs4 import BeautifulSoup
-# import requests_random_user_agent
-import os
-from nltk.tokenize import RegexpTokenizer
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-import nltk
-nltk.download('omw-1.4')
-app = Flask(__name__)
+const express = require('express');
+const app = express();
+const dotenv = require("dotenv");
+dotenv.config()
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+const cohere = require('cohere-ai');
+cohere.init(process.env.API);
 
 
-@app.route("/")
-def homepage():
-    """View function for Home Page."""
-    return render_template("index.html")
+//Stores whether it is generating or classifying
+let test = 0
+
+//connect to CockroachDB
+server.listen(3000)
 
 
-@app.route("/10k-analysis", methods=['GET', 'POST'])
-def analysisPage():
-    def mapTickerCIK():
-        path = "/Users/guangyaoli/ProgramFiles/Sentient/"
-        os.chdir(path)
-        """
-        Map stock tickers to CIKs.
-        """
-        f = open("company_tickers.json")
-        data = json.load(f)
-        tickerCIKs = {}
-        for i, l in data.items():
-            currTicker = l['ticker']
-            currCIK = l['cik_str']
-            tickerCIKs[currTicker] = currCIK
-        return tickerCIKs
+//register view engine 
+app.set('view engine', 'ejs');
 
-    def fetchDocuments(tickerCIKs, company):
-        """
-        Fetch all the documents and store them into our local folder.
-        """
-        path = "/Users/guangyaoli/ProgramFiles/Sentient/10Ks/"
-        os.chdir(path)
-        try:
-            os.mkdir(str(tickerCIKs[company]))
-            os.chdir(str(tickerCIKs[company]))
-        except OSError:
-            print(company + "'s CIK has been previously utilized")
-            return
+secret: process.env.SESSION_SECRET
 
-        s = requests.Session()
-        url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000" + \
-            str(tickerCIKs[company]) + \
-            "&type=10-K%25&dateb=&owner=exclude&start=0&count=40&output=atom"
-        xml = requests.get(url)
-        soup = BeautifulSoup(xml.content, 'html.parser')
-        tenKs = soup.find_all('filing-href')
+app.get('/', (req,res) => {
+    test = 1
+    res.render('generate.ejs')
+})
 
-        # Fetch the documents and save into our local folder
-        documentNames = []  # the filenames of all the documents
-        counter = 0
-        for tenK in tenKs:
-            kurl = tenK.text
-            file = requests.get(kurl)
-            soup = BeautifulSoup(file.content, 'html.parser')
-            kurls = [i['href'] for i in soup.find_all('a', href=True)]
-            docURL = "https://www.sec.gov/" + kurls[9]
-            if ("ex" not in docURL and "k" in docURL):
-                kfile = requests.get(docURL)
-                if ("ix?" not in docURL):
-                    soup = BeautifulSoup(kfile.content, 'html')
-                    text = soup.get_text()
-                    fileName = company + "_" + str(counter) + ".txt"
-                    file = open(fileName, 'a')
-                    file.write(text)
-                    file.close()
-                    documentNames.append(fileName)
-            counter += 1
-        return documentNames
+app.get('/classify', (req,res) => {
+    test = 2
+    res.render('classify.ejs')
+})
 
-    def processData(documentNames):
-        """
-        Data cleaning + preprocessing by tokenization, removing stopwords, and lemmatization.
-        """
-        alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-                    'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-        # Data cleaning + preprocessing
-        dataset = []
-        for documentName in documentNames:
-            filtered = []
-            text = open(documentName, "r").read()
-            # remove HTML tags
-            text = BeautifulSoup(text, 'html.parser').get_text()
-            tokenizer = RegexpTokenizer(r'\w+')
-            text = tokenizer.tokenize(text)  # Tokenization
-            for word in text:
-                word = word.lower()
-                if (word not in stopwords.words('english') and word not in alphabet and word.isalpha()):  # remove stopwords
-                    word = WordNetLemmatizer().lemmatize(word)  # lemmatization
-                    filtered.append(word)
-            dataset.append(filtered)
-        return dataset
+//Stores prompt
+p = 'Question: How do I stay focused?\nAnswer: Eliminate distractions \n--\nQuestion: How do I eat less?\nAnswer: Drink more water.\n--\nQuestion: How can I stay calm?\nAnswer: Take deep breaths.\n--\nQuestion: How to become less hungry?\nAnswer: Don\'t eat too much.\n--\nQuestion: How to stay happy?\nAnswer: Eat more.\n--\n'
 
-    def generateBoW(dataset):
-        """
-        Generates the BoW of the current dataset.
-        """
-        dict = corpora.Dictionary(dataset)
-        BoW_corpus = [dict.doc2bow(file, allow_update=True)
-                      for file in dataset]
-        # id_words = [[(dict[id], count) for id, count in line] for line in BoW_corpus]
-        return BoW_corpus
+io.on('connection', (socket) => {
+    socket.on('chat message', (msg) => {
+      const username = "You"
+      console.log(username)
+      io.emit('chat message', (username + ': ' + msg));
+      console.log(test)
 
-    def wordCloud(dataset):
-        """
-        Generates + displays the wordcloud of the latest report. Can be some fun feature.
-        """
-        wordcloud = WordCloud(max_font_size=50, max_words=50, background_color="white",
-                              width=800, height=400).generate(" ".join(dataset[0]))
-        plt.figure(figsize=(20, 10), facecolor='k')
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis("off")
-        plt.show()
+      //Generates chatbot text to talk to user
+      if(test == 1){
+        p += `Question: ${msg}` + '\nAnswer: ';
+        console.log(p);
+        (async () => {
+            const response = await cohere.generate({
+                model: 'small',
+                prompt: p,
+                max_tokens: 50,
+                temperature: 0.9,
+                k: 0,
+                p: 0.75,
+                frequency_penalty: 0,
+                presence_penalty: 0,
+                stop_sequences: ["--"],
+                return_likelihoods: 'NONE'
+            });
+            s = `${response.body.generations[0].text}`
+            s = s.split("--")
+            for(let i = 0; i < s.length; i++){
+                console.log("String piece:" + s[i])
+                if(s[i].includes('Question:') || s[i].includes('Answer:') || s[i].includes('                           ')){
+                    console.log("it has a question or answer")
+                    break
+                }
+                else{
+                    if(s != '\n' || s != '' || s!=null){
+                        io.emit('chat message', ("Chatbot: " + s[i]))
+                        p += s[i]
+                    }
+            }
+            p+= '\n--\n'
+            
+            }
+            
+        })();
+      }
+      
+      else if(test == 2){
+        (async () => {
+            const response = await cohere.classify({
+              model: 'large',
+              inputs: [msg],
+              examples: [{"text": "High interest rates", "label": "Negative"}, {"text": "The economy is falling apart", "label": "Negative"}, {"text": "The economy is doing well", "label": "Positive"}, {"text": "The economy is going down", "label": "Negative"}, {"text": "Low interest rates", "label": "Positive"}, {"text": "GDP is down", "label": "Negative"}, {"text": "GDP is up", "label": "Positive"}, {"text": "High debt", "label": "Negative"}, {"text": "Low debt", "label": "Positive"}, {"text": "Inflation is high", "label": "Negative"}, {"text": "Inflation is low", "label": "Positive"}, {"text": "There is a recession", "label": "Negative"}, {"text": "Recession", "label": "Negative"}, {"text": "Crash", "label": "Negative"}] 
+            });
+            io.emit('chat message', (`Chatbot: Your statement is perceived as ${((response.body.classifications)[0]).prediction}`));
+          })();
+      }
+      
+    });
 
-    def top20(dataset):
-        # first documents tokens from docs(which contains many tokens from different docs)
-        counter = Counter(dataset[0])
-        most = counter.most_common()
-        x, y = [], []
-        for word, count in most[:20]:
-            x.append(word)
-            y.append(count)
-        plt.figure(figsize=(16, 6))
-        sns.barplot(x=y, y=x)
-
-    def CosSim(A, B):
-        """
-        Calculate the cosine similarity between two sets A and B.
-        """
-        vec_A = []
-        vec_B = []
-        rvector = list(A.union(B))
-        for w in rvector:
-            if w in A:
-                vec_A.append(1)
-            elif w not in A:
-                vec_A.append(0)
-            if w in B:
-                vec_B.append(1)
-            elif w not in B:
-                vec_B.append(0)
-        mul = 0
-        for i in range(len(rvector)):
-            mul += vec_A[i] * vec_B[i]
-        return mul / float((sum(vec_A) * sum(vec_B)) ** 0.5)
-
-    def JaccardSim(A, B):
-        """
-        Calculate the Jaccard similarities between two sets A and B.
-        """
-        return len(A.intersection(B)) / len(A.union(B))
-
-    def computeSim(dataset):
-        """
-        Generate CosSim and JaccardSim for every two years, starting from the latest.
-        """
-        l = 0  # 0 is the latest year
-        thisYearLastYear = {}
-        A = set(dataset[0])
-        for r in range(1, len(dataset)):
-            B = set(dataset[r])
-            cos_score = CosSim(A, B)
-            jaccard_score = JaccardSim(A, B)
-            scores = []
-            scores.append(cos_score)
-            scores.append(jaccard_score)
-            thisYearLastYear["(" + str(l) + "-" + str(r) + ")"] = scores
-            l += 1
-        return thisYearLastYear
-
-    def getPositivity(dataset):
-        """
-        Get the positivity of the current report.
-        """
-        positivity = TextBlob(
-            " ".join(dataset[0]))  # assuming for the latest 10K.
-        return positivity.sentiment
-
-    """View function for About Page."""
-
-    if request.method == 'POST':
-        """
-        The driver of the program
-        """
-        company = request.form.get('javascript_data')
-        print(company)
-        tickerCIKs = mapTickerCIK()
-        documentNames = fetchDocuments(tickerCIKs, company)
-        dataset = processData(documentNames)
-        thisYearLastYear = computeSim(dataset)
-        print(thisYearLastYear)
-        central_df_dict = {'Pair': [],
-                           'Cosine Similarity': [], 'Jaccard Similarity': []}
-        for pair, vals in thisYearLastYear.items():
-            central_df_dict['Pair'].append(pair)
-            central_df_dict['Cosine Similarity'].append(vals[0])
-            central_df_dict['Jaccard Similarity'].append(vals[1])
-        central_df = pd.DataFrame(central_df_dict)
-        central_df = central_df.set_index('Pair')
-        central_df = central_df.fillna(0)
-        central_df = pd.concat(
-            [central_df, central_df.pct_change()], axis=1, sort=False)
-        central_df.columns = ['CosSim', 'JaccSim',
-                              'CosSim % Change', 'Jacc % Change']
-        print(central_df)
-    return render_template("10k.html")
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+});
