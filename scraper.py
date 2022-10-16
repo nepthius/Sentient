@@ -201,7 +201,9 @@ def main():
         central_df_dict['Cosine Similarity'].append(vals[0])
         central_df_dict['Jaccard Similarity'].append(vals[1])
     central_df = pd.DataFrame(central_df_dict)
-    # central_df = pd.concat([central_df, central_df.pct_change()], axis=1, sort=False)
-    print(central_df)
+    central_df = central_df.set_index('Pair')
+    central_df = central_df.fillna(0)
+    central_df = pd.concat([central_df, central_df.pct_change()], axis=1, sort=False)
+    central_df.columns = ['CosSim', 'JaccSim', 'CosSim % Change', 'Jacc % Change']
 
 main()
