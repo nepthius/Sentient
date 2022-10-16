@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sentient</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa:700" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="10k.css">
+
+</head>
+<body>
+    <div id="loading">
+        <div id="spinner"></div>
+    </div>
+    <div id="header" class="animated slideInDown" style="animation-delay:1.8s;">
+    <div id="title">Sentient</div><br>
+    <div id="links">
+        <a href="10k.html">10K Report Analysis</a>
+        <a href="#work" style="margin:0px 60px;">About Sentient</a>
+        <a href="#contact">contact</a>
+    </div>
+    </div>
+
+    <center>
+    <div id="middle">
+        <h1>
+            <div class="wrapper">
+                <header>Report file upload</header>
+                <form action="php/upload.php" method="post" enctype="multipart/form-data">
+                    <input class="file-input" type="file" id="file-input" name="file-input">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Browse File to Upload</p>
+                    
+                </form>
+
+                <!-- <button id="submit"> Show file </button> -->
+            </div>
+        </h1>
+
+    </div>
+
+
+    </center>
+
+    <div id="portfolio">
+         
+              <div id="work">
+                 <h1>About Sentient</h1>
+
+                 <div class="project">
+                 <h2>Who we are & our promise</h2>
+                 <div>
+                    Sentient is a Bay Area firm focused solely on offering financial literacy. Our motif is to digest 10-K annual reports for publicly traded companies to allow stockholders an opportunity to have a greater understanding of their investments. Sentient solutions show an array of financial models and trendiness for stockholders to grasp a full scope of where their investments stand. Using Machine Learning, Sentient offers estimations of projected growth and outcome for the coming year.</div>
+                 <center><button class="btn_one" onclick="window.open('10k.html')">Test Our Model</button></center>
+                </div>
+
+                <div class="project">
+                    <h2>How Sentient Solutions work </h2>
+                    <div>Sentient uses Machine Learning algorithms to extrapolate information centered around the Accounting formula, Assets = Liabilities + Stockholder’s Equity. Using this formula, we are able to calculate EPS (Earnings Per Share), ROA (Return on Assets), ROE/DuPont Analysis (Return on Equity), NPM (Net Profit Margin), DER (Debt-to-Equity Ratio), & ARG (Annual Revenue Growth). Using this information, Sentient will also approximate a trend line using linear regression for calculations and come to a financial estimate on the future of any given corporation. </div>
+                   </div>
+
+             </div>
+         
+              <div id="contact">
+                 <h1>Contact Our Team</h1> 
+                 <form>
+                     <input type="text" placeholder="Full Name" required>
+                     <input type="email" placeholder="Email" required><br>
+                     <textarea placeholder="Your message for our team" required rows="5"></textarea><br>
+                     <button class="btn_one">Send</button>
+                 </form>   
+             </div>
+    </div>
+    <div id="footer">
+        Template used from <br><br> <a href="https://github.com/imfunniee/fimbo.git">Fimbo</a> on GitHub.
+    </div>
+    <script src="10k.js" type="text/javascript"></script>
+</body>
+</html>
