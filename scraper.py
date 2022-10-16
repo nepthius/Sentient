@@ -10,7 +10,7 @@ from nltk.stem import WordNetLemmatizer
 import nltk
 nltk.download('omw-1.4')
 from gensim import corpora
-from gensim.models import LdaMulticore
+from gensim.models import TfidfModel
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from collections import Counter
@@ -18,8 +18,9 @@ import pyLDAvis.gensim_models
 import re
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-import pandas as pd
 from textblob import TextBlob
+import seaborn as sns
+import pandas as pd
 
 def mapTickerCIK():
     """
@@ -50,7 +51,7 @@ def fetchDocuments(tickerCIKs, company):
     s = requests.Session()
     url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000"+ str(tickerCIKs[company]) +"&type=10-K%25&dateb=&owner=exclude&start=0&count=40&output=atom"
     xml = requests.get(url)
-    soup = BeautifulSoup(xml.content, 'html', features="html.parser")
+    soup = BeautifulSoup(xml.content, 'html.parser')
     tenKs = soup.find_all('filing-href')
 
     # Fetch the documents and save into our local folder
@@ -59,7 +60,7 @@ def fetchDocuments(tickerCIKs, company):
     for tenK in tenKs:
         kurl = tenK.text
         file = requests.get(kurl)
-        soup = BeautifulSoup(file.content, 'html', features="html.parser")
+        soup = BeautifulSoup(file.content, 'html.parser')
         kurls = [i['href'] for i in soup.find_all('a', href=True)]
         docURL = "https://www.sec.gov/" + kurls[9]
         if("ex" not in docURL and "k" in docURL):
@@ -105,8 +106,8 @@ def generateBoW(dataset):
     """
     dict = corpora.Dictionary(dataset)
     BoW_corpus = [dict.doc2bow(file, allow_update=True) for file in dataset]
-    id_words = [[(dict[id], count) for id, count in line] for line in BoW_corpus]
-    return id_words
+    # id_words = [[(dict[id], count) for id, count in line] for line in BoW_corpus]
+    return BoW_corpus
 
 
 def wordCloud(dataset):
@@ -119,6 +120,15 @@ def wordCloud(dataset):
     plt.axis("off")
     plt.show()
 
+def top20(dataset):
+    counter=Counter(dataset[0]) #first documents tokens from docs(which contains many tokens from different docs)
+    most=counter.most_common()
+    x, y=[], []
+    for word,count in most[:20]:
+        x.append(word)
+        y.append(count)
+    plt.figure(figsize=(16,6))    
+    sns.barplot(x=y,y=x)
 
 def CosSim(A, B):
     """
@@ -167,6 +177,7 @@ def computeSim(dataset):
         l += 1
     return thisYearLastYear
 
+
 def getPositivity(dataset):
     """
     Get the positivity of the current report.
@@ -182,8 +193,15 @@ def main():
     tickerCIKs = mapTickerCIK()
     documentNames = fetchDocuments(tickerCIKs, company)
     dataset = processData(documentNames)
-    id_words = generateBoW(dataset)
     thisYearLastYear = computeSim(dataset)
     print(thisYearLastYear)
+    central_df_dict = {'Pair': [], 'Cosine Similarity': [], 'Jaccard Similarity': []}
+    for pair, vals in thisYearLastYear.items():
+        central_df_dict['Pair'].append(pair)
+        central_df_dict['Cosine Similarity'].append(vals[0])
+        central_df_dict['Jaccard Similarity'].append(vals[1])
+    central_df = pd.DataFrame(central_df_dict)
+    # central_df = pd.concat([central_df, central_df.pct_change()], axis=1, sort=False)
+    print(central_df)
 
 main()
