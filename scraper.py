@@ -2,7 +2,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 import requests_random_user_agent
-import pandas
+import os
 
 company = input("Enter a company: ")
 f = open("company_tickers.json")
@@ -12,50 +12,44 @@ for i, l in data.items():
     currTicker = l['ticker']
     currCIK = l['cik_str']
     tickerCIK[currTicker] = currCIK
-tickerCIK[company] 
+path = "/Users/anish/sentient/10Ks/"
+os.chdir(path)
+try:
+    os.mkdir(str(tickerCIK[company]))
+    os.chdir(str(tickerCIK[company]))
+except OSError:
+    print(company + "'s CIK has been previously utilized")
 
 
 s = requests.Session()
-#print(s)
 url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000"+ str(tickerCIK[company]) +"&type=10-K%25&dateb=&owner=exclude&start=0&count=40&output=atom"
-#print(url)
 xml = requests.get(url)
 soup = BeautifulSoup(xml.content, 'lxml')
 tenKs = soup.find_all('filing-href')
 
 documents = []
 
-#counter = 0
+counter = 0
 for tenK in tenKs:
-    '''
-    if(counter > 5):
-        break
-    '''
     
     kurl = tenK.text
-    #print("kurl: ", kurl)
     file = requests.get(kurl)
     soup = BeautifulSoup(file.content, 'html')
     
-    #types = soup.find_all('td')
-    #print(types[3].text)
     kurls = [i['href'] for i in soup.find_all('a', href=True)]
     docURL = "https://www.sec.gov/" + kurls[9]
 
     
     if("ex" not in docURL and "k" in docURL):
-        
-        documents.append(docURL)
+        kfile = requests.get(docURL)
 
-    #counter+=1
-
-    '''
-    types = soup.find_all('tr')
-    count = 0
-    for x in types[1]:
-        print(count)
-        print(x)
-        print("---------")
-        count+=1
-    '''
-
+        if("ix?" not in docURL):
+            soup = BeautifulSoup(kfile.content, 'html')
+            file = company + "_" + str(counter) + ".txt"
+            text = open(file, 'a')
+            text.write(soup.get_text())
+            text.close()
+            documents.append(docURL)
+    
+    
+    counter+=1
