@@ -11,9 +11,11 @@ def homepage():
     return render_template("index.html")
 
 
-@app.route("/10k-analysis")
+@app.route("/10k-analysis", methods=['GET', 'POST'])
 def analysisPage():
     """View function for About Page."""
+    if request.method == 'POST':
+        print(request.form.get('javascript_data'))
     return render_template("10k.html")
 
 

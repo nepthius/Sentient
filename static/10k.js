@@ -1,7 +1,13 @@
-$("#submit").click(function () {
+$("#submit").click(function (e) {
+    e.preventDefault();
     const sticker = document.getElementById("text-input").value;
     console.log(sticker);
+    $.post( "/10k-analysis", {
+        javascript_data: sticker
+    });
 });
+
+
 
 
 $('input[type="file"]').change( function (e) {
@@ -34,10 +40,10 @@ $(document).ready(function(){
       });
     
       // expand clicking area
-      const form = document.querySelector("form");
+      const uploadFileform = document.querySelector("#upload-area");
       fileInput = document.querySelector(".file-input");
       // form click event
-      form.addEventListener("click", () =>{
+      uploadFileform.addEventListener("click", () =>{
         fileInput.click();
         });
   });

@@ -30,21 +30,24 @@
         <h1>
             <div class="wrapper">
                 <header>Company sticker</header>
-                <input class="text-input" type="text" id="text-input" name="text-input">
-                <button class="submit" id="submit" name="button">Submit</button>
+                <form method="POST">
+                
+                    <input class="text-input" type="text" id="text-input" name="text-input">
+                    <input type="submit" value="Submit" class="submit" id="submit" name="button"/>
+                </form>
                 <hr>
 
                 <div class="result" id="result">
-                    
+
                 </div>
 
                 <header>Report file upload</header>
-                <form action="php/upload.php" method="post" enctype="multipart/form-data">
+                <div id="upload-area">
                     <input class="file-input" type="file" id="file-input" name="file-input">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Browse File to Upload</p>
                     
-                </form>
+                </div>
 
                 <!-- <button id="submit"> Show file </button> -->
             </div>
