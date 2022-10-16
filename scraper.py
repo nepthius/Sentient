@@ -22,7 +22,9 @@ except OSError:
 
 
 s = requests.Session()
+#print(s)
 url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000"+ str(tickerCIK[company]) +"&type=10-K%25&dateb=&owner=exclude&start=0&count=40&output=atom"
+#print(url)
 xml = requests.get(url)
 soup = BeautifulSoup(xml.content, 'lxml')
 tenKs = soup.find_all('filing-href')
@@ -41,6 +43,7 @@ for tenK in tenKs:
 
     
     if("ex" not in docURL and "k" in docURL):
+        #print(str(counter) + ": " + docURL)
         kfile = requests.get(docURL)
 
         if("ix?" not in docURL):
@@ -49,6 +52,7 @@ for tenK in tenKs:
             text = open(file, 'a')
             text.write(soup.get_text())
             text.close()
+            #print(soup.get_text())
             documents.append(docURL)
     
     
