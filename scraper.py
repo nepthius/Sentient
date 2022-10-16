@@ -22,14 +22,26 @@ xml = requests.get(url)
 soup = BeautifulSoup(xml.content, 'lxml')
 tenKs = soup.find_all('filing-href')
 
+documents = []
 
+#counter = 0
+for tenK in tenKs:
+    '''
+    if(counter > 5):
+        break
+    '''
+    
+    kurl = tenK.text
+    print("kurl: ", kurl)
+    file = requests.get(kurl)
+    soup = BeautifulSoup(file.content, 'html')
+    #types = soup.find_all('td')
+    #print(types[3].text)
+    kurls = [i['href'] for i in soup.find_all('a', href=True)]
+    docURL = "https://www.sec.gov/" + kurls[9]
+    print(docURL)
+    #counter+=1
 
-kurl = tenKs[0].text
-file = requests.get(kurl)
-soup = BeautifulSoup(file.content, 'html')
-
-kurls = [i['href'] for i in soup.find_all('a', href=True)]
-docURL = "https://www.sec.gov/" + kurls[9]
-
-print(docURL)
-
+print("\n\n")
+types = soup.find_all('td')
+print(types)
