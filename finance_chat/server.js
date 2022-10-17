@@ -27,6 +27,11 @@ app.get('/', (req,res) => {
     res.render('generate.ejs')
 })
 
+app.get('/classify', (req,res) => {
+    test = 2
+    res.render('classify.ejs')
+})
+
 //Stores prompt
 p = 'Question: How do I stay focused?\nAnswer: Eliminate distractions \n--\nQuestion: How do I eat less?\nAnswer: Drink more water.\n--\nQuestion: How can I stay calm?\nAnswer: Take deep breaths.\n--\nQuestion: How to become less hungry?\nAnswer: Don\'t eat too much.\n--\nQuestion: How to stay happy?\nAnswer: Eat more.\n--\n'
 
@@ -74,16 +79,18 @@ io.on('connection', (socket) => {
             
         })();
       }
-      /*
+      
       else if(test == 2){
         (async () => {
             const response = await cohere.classify({
-              model: '489cf173-a605-4ed6-9a90-67a97244673f-ft',
-              inputs: [msg]
+              model: 'large',
+              inputs: [msg],
+              examples: [{"text": "High interest rates", "label": "Negative"}, {"text": "The economy is falling apart", "label": "Negative"}, {"text": "The economy is doing well", "label": "Positive"}, {"text": "The economy is going down", "label": "Negative"}, {"text": "Low interest rates", "label": "Positive"}, {"text": "GDP is down", "label": "Negative"}, {"text": "GDP is up", "label": "Positive"}, {"text": "High debt", "label": "Negative"}, {"text": "Low debt", "label": "Positive"}, {"text": "Inflation is high", "label": "Negative"}, {"text": "Inflation is low", "label": "Positive"}, {"text": "There is a recession", "label": "Negative"}, {"text": "Recession", "label": "Negative"}, {"text": "Crash", "label": "Negative"}] 
             });
             io.emit('chat message', (`Chatbot: Your statement is perceived as ${((response.body.classifications)[0]).prediction}`));
           })();
       }
-      */
+      
     });
+
 });
